@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "693350757736",
+    "project_id": "hunter-x-guild",
+    "storage_bucket": "hunter-x-guild.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:693350757736:android:b17964e70f47237d9812dd",
+        "android_client_info": {
+          "package_name": "com.example.hunter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB475gi4-Y-pKCzLr8usXgMorqQ06zmiKc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
