@@ -38,7 +38,7 @@ You begin as an **E-Rank Hunter** and progressively level up through **D → C �
 | Platform | Link |
 |----------|------|
 | 🤖 **Android APK** | [**Download Latest Release →**](https://github.com/kavya-dungrani/HUNTR/releases/latest) |
-| 🌐 **Web** | Coming Soon |
+| 🌐 **Web** | https://hunter-system-sable.vercel.app/ |
 | 🍎 **iOS** | Build from source (see [Getting Started](#-getting-started)) |
 
 > **Minimum Requirements:** Android 5.0+ (API 21) • ~55MB
