@@ -325,19 +325,13 @@ class _HunterAuthScreenState extends State<HunterAuthScreen>
                       // Holographic Crest Emblem
                       Center(
                         child: Container(
-                          width: 80,
-                          height: 80,
+                          width: 88,
+                          height: 88,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: RadialGradient(
-                              colors: [
-                                (_isSignUp ? activeAffinity.color : HunterTheme.cyan)
-                                    .withValues(alpha: 0.35),
-                                Colors.transparent,
-                              ],
-                            ),
                             border: Border.all(
-                              color: _isSignUp ? activeAffinity.color : HunterTheme.cyan,
+                              color: (_isSignUp ? activeAffinity.color : HunterTheme.cyan)
+                                  .withValues(alpha: 0.8),
                               width: 2,
                             ),
                             boxShadow: [
@@ -345,17 +339,16 @@ class _HunterAuthScreenState extends State<HunterAuthScreen>
                                 color: (_isSignUp
                                         ? activeAffinity.color
                                         : HunterTheme.cyan)
-                                    .withValues(alpha: 0.4),
+                                    .withValues(alpha: 0.45),
                                 blurRadius: 28,
-                                spreadRadius: 2,
+                                spreadRadius: 3,
                               ),
                             ],
                           ),
-                          child: Center(
-                            child: Icon(
-                              _isSignUp ? Icons.auto_awesome : Icons.shield_rounded,
-                              color: _isSignUp ? activeAffinity.color : HunterTheme.cyan,
-                              size: 40,
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/images/app_logo.png',
+                              fit: BoxFit.cover,
                             ),
                           ),
                         ),

@@ -65,7 +65,7 @@ class HunterProvider extends ChangeNotifier {
         _activeBonus = DailySystem.generateDailyBonusQuest(_profile!.currentRank);
       }
     } catch (e) {
-      print('HunterProvider initialize error: $e');
+      debugPrint('HunterProvider initialize error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();

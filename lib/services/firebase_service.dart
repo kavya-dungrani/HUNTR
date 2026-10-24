@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -10,6 +10,9 @@ import '../models/daily_system.dart';
 class FirebaseService {
   FirebaseService._();
   static final FirebaseService instance = FirebaseService._();
+
+  static const String serverClientId =
+      '693350757736-bov402t9a0t0a8g8ha4uumg6gumtv4ts.apps.googleusercontent.com';
 
   FirebaseAuth get auth => FirebaseAuth.instance;
   FirebaseFirestore get firestore => FirebaseFirestore.instance;
@@ -67,9 +70,14 @@ class FirebaseService {
         await prefs.setBool(_keyHasLoggedIn, true);
         return cred;
       } else {
-        await GoogleSignIn.instance.initialize();
+        await GoogleSignIn.instance.initialize(
+          serverClientId: serverClientId,
+        );
         final account = await GoogleSignIn.instance.authenticate();
         final googleAuth = account.authentication;
+        if (googleAuth.idToken == null) {
+          throw Exception('Failed to obtain Google ID token.');
+        }
         final credential = GoogleAuthProvider.credential(
           idToken: googleAuth.idToken,
         );
@@ -79,7 +87,7 @@ class FirebaseService {
         return cred;
       }
     } catch (e) {
-      print('FirebaseService signInWithGoogle error: $e');
+      debugPrint('FirebaseService signInWithGoogle error: $e');
       rethrow;
     }
   }
@@ -107,7 +115,7 @@ class FirebaseService {
       await prefs.remove(_keyLocalAchievements);
       await prefs.setBool(_keyHasLoggedIn, false);
     } catch (e) {
-      print('FirebaseService signOut error: $e');
+      debugPrint('FirebaseService signOut error: $e');
     }
   }
 
@@ -142,7 +150,7 @@ class FirebaseService {
         }, SetOptions(merge: true));
       } catch (e) {
         // Log quietly — local copy is safe
-        print('Firestore profile sync error (offline or permission): $e');
+        debugPrint('Firestore profile sync error (offline or permission): $e');
       }
     }
   }
@@ -160,7 +168,7 @@ class FirebaseService {
           return profile;
         }
       } catch (e) {
-        print('Firestore load error (falling back to local cache): $e');
+        debugPrint('Firestore load error (falling back to local cache): $e');
       }
     }
 

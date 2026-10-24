@@ -1,7 +1,7 @@
 name: hunter
 description: "Hunter System - Solo Leveling Inspired RPG Progression Engine"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.13.5
@@ -27,3 +27,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/
+

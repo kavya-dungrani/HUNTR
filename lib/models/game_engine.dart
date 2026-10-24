@@ -145,6 +145,7 @@ int calculateMaxMp(int mentalXp, String rank) {
 // HUNTER STATS
 // ============================================================
 
+// ignore: constant_identifier_names
 enum HunterStat { STR, AGI, VIT, INT, PERC }
 
 class StatDefinition {
