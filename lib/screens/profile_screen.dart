@@ -555,6 +555,24 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 12),
+
+            // Danger Zone: Delete Hunter Account
+            Center(
+              child: TextButton.icon(
+                onPressed: () => _confirmDeleteAccount(context, hunter),
+                icon: const Icon(Icons.delete_forever, color: Color(0xFFEF4444), size: 16),
+                label: const Text(
+                  'DELETE HUNTER ACCOUNT & PROFILE (PERMANENT)',
+                  style: TextStyle(
+                    color: Color(0xFFEF4444),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
           ],
         ),
@@ -597,6 +615,46 @@ class ProfileScreen extends StatelessWidget {
             },
             style: ElevatedButton.styleFrom(backgroundColor: HunterTheme.red),
             child: const Text('LOG OUT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteAccount(BuildContext context, HunterProvider hunter) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0e1322),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+        ),
+        title: const Text(
+          '[ PERMANENT ACCOUNT DELETION ]',
+          style: TextStyle(
+            color: Color(0xFFEF4444),
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+            fontSize: 15,
+          ),
+        ),
+        content: const Text(
+          'Warning: This action will permanently erase your Hunter license, remove your name from the global leaderboard, release your username, and delete all progression. This cannot be undone. Are you sure you want to proceed?',
+          style: TextStyle(color: HunterTheme.slate300, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('CANCEL', style: TextStyle(color: HunterTheme.slate400)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await hunter.deleteHunterAccount();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFDC2626)),
+            child: const Text('PERMANENTLY DELETE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'social_service.dart';
+import 'guild_service.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -118,6 +119,73 @@ class FirebaseService {
     } catch (e) {
       debugPrint('FirebaseService signOut error: $e');
     }
+  }
+
+  Future<void> deleteAccount(HunterProfile? profile) async {
+    final user = currentUser;
+    if (user != null) {
+      final uid = user.uid;
+
+      // 1. Remove from global leaderboard
+      try {
+        await firestore.collection('leaderboard').doc(uid).delete();
+      } catch (e) {
+        debugPrint('FirebaseService deleteAccount leaderboard error: $e');
+      }
+
+      // 2. Remove public player profile card
+      try {
+        await firestore.collection('players').doc(uid).delete();
+      } catch (e) {
+        debugPrint('FirebaseService deleteAccount player error: $e');
+      }
+
+      // 3. Remove presence
+      try {
+        await firestore.collection('presence').doc(uid).delete();
+      } catch (e) {
+        debugPrint('FirebaseService deleteAccount presence error: $e');
+      }
+
+      // 4. Release unique username if claimed
+      if (profile != null && profile.username.isNotEmpty) {
+        try {
+          final clean = normalizeUsername(profile.username);
+          await firestore.collection('usernames').doc(clean).delete();
+        } catch (e) {
+          debugPrint('FirebaseService deleteAccount username error: $e');
+        }
+      }
+
+      // 5. Leave guild if enrolled
+      if (profile != null && profile.guildId != null && profile.guildId!.isNotEmpty) {
+        try {
+          final isLeader = profile.guildRole == 'leader';
+          await GuildService.instance.leaveGuild(profile.guildId!, uid, isLeader);
+        } catch (e) {
+          debugPrint('FirebaseService deleteAccount leaveGuild error: $e');
+        }
+      }
+
+      // 6. Remove private hunter profile
+      try {
+        await firestore.collection('hunters').doc(uid).delete();
+      } catch (e) {
+        debugPrint('FirebaseService deleteAccount hunter doc error: $e');
+      }
+
+      // 7. Delete auth user credentials
+      try {
+        await user.delete();
+      } catch (e) {
+        debugPrint('FirebaseService deleteAccount auth user error: $e');
+        await signOut();
+      }
+    }
+
+    // 8. Clear all local preferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
   }
 
   // ================= FIRESTORE SYNC =================

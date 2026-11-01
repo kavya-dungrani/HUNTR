@@ -564,4 +564,15 @@ class HunterProvider extends ChangeNotifier {
     _unlockedAchievements = [];
     notifyListeners();
   }
+
+  Future<void> deleteHunterAccount() async {
+    await FirebaseService.instance.deleteAccount(_profile);
+    _profile = null;
+    _quests = [];
+    _dailyQuests = [];
+    _activeDungeon = null;
+    _activeBonus = null;
+    _unlockedAchievements = [];
+    notifyListeners();
+  }
 }
