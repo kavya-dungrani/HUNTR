@@ -114,11 +114,11 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
 
   Widget _buildTopHud(BuildContext context, HunterProvider hunter, HunterProfile profile, ({String label, int color}) rankBadge) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0d1222),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF1c253d)),
+        color: const Color(0xFF070B14),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.35), width: 1),
       ),
       child: Row(
         children: [
@@ -128,14 +128,23 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
             },
             child: Container(
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: const Color(0xFF161e36),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: HunterTheme.cyan),
+                color: Color(rankBadge.color).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Color(rankBadge.color), width: 1.5),
               ),
-              child: const Icon(Icons.shield, color: HunterTheme.cyan, size: 28),
+              alignment: Alignment.center,
+              child: Text(
+                profile.currentRank.split('-')[0],
+                style: TextStyle(
+                  color: Color(rankBadge.color),
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                  fontFamily: 'monospace',
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -145,29 +154,64 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
               children: [
                 Row(
                   children: [
-                    Text(
-                      profile.displayName,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16),
+                    Flexible(
+                      child: Text(
+                        profile.displayName,
+                        style: const TextStyle(
+                          color: Color(0xFFF0F6FC),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                       decoration: BoxDecoration(
                         color: Color(rankBadge.color).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Color(rankBadge.color)),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                       child: Text(
                         rankBadge.label,
-                        style: TextStyle(color: Color(rankBadge.color), fontSize: 10, fontWeight: FontWeight.w900),
+                        style: TextStyle(
+                          color: Color(rankBadge.color),
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w900,
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ),
+                    if (profile.guildTag != null && profile.guildTag!.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(2),
+                          border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.4), width: 0.5),
+                        ),
+                        child: Text(
+                          '[${profile.guildTag}]',
+                          style: const TextStyle(
+                            color: Color(0xFF00E5FF),
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${profile.hunterId} • ${profile.equippedTitle.isNotEmpty ? profile.equippedTitle : 'The Awakened'}',
-                  style: const TextStyle(color: HunterTheme.slate400, fontSize: 11),
+                  '@${profile.username} • ${profile.hunterId}',
+                  style: const TextStyle(
+                    color: Color(0xFF00E5FF),
+                    fontSize: 10,
+                    fontFamily: 'monospace',
+                  ),
                 ),
               ],
             ),
@@ -176,22 +220,21 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
           Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.leaderboard, color: HunterTheme.amber, size: 22),
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.notifications_none, color: HunterTheme.cyan, size: 22),
+                icon: const Icon(Icons.notifications_none, color: Color(0xFF00E5FF), size: 20),
                 onPressed: () {
                   showDialog(context: context, builder: (_) => const NotificationCenterDialog());
                 },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
+              const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.settings, color: HunterTheme.slate400, size: 22),
+                icon: const Icon(Icons.settings, color: Color(0xFF64748B), size: 20),
                 onPressed: () {
                   showDialog(context: context, builder: (_) => const SystemSettingsDialog());
                 },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),
@@ -202,11 +245,11 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
 
   Widget _buildGaugesCard(HunterProfile profile, ({int currentLevel, int currentProgressXp, int percentage, int totalXp, int xpNeededForNext}) xpInfo) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0c101e),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: HunterTheme.cyan.withValues(alpha: 0.3)),
+        color: const Color(0xFF070B14),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.25), width: 1),
       ),
       child: Column(
         children: [
@@ -214,58 +257,58 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('HP (HEALTH)', style: TextStyle(color: HunterTheme.hpColor, fontWeight: FontWeight.bold, fontSize: 12)),
-              Text('${profile.hp} / ${profile.maxHp}', style: const TextStyle(color: HunterTheme.hpColor, fontWeight: FontWeight.bold, fontSize: 12)),
+              const Text('HP (HEALTH)', style: TextStyle(color: HunterTheme.hpColor, fontWeight: FontWeight.bold, fontSize: 11, fontFamily: 'monospace')),
+              Text('${profile.hp} / ${profile.maxHp}', style: const TextStyle(color: HunterTheme.hpColor, fontWeight: FontWeight.bold, fontSize: 11, fontFamily: 'monospace')),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(2),
             child: LinearProgressIndicator(
               value: (profile.hp / profile.maxHp).clamp(0.0, 1.0),
-              backgroundColor: const Color(0xFF201319),
+              backgroundColor: const Color(0xFF180A0E),
               color: HunterTheme.hpColor,
-              minHeight: 8,
+              minHeight: 6,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // MP Bar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('MP (MANA)', style: TextStyle(color: HunterTheme.mpColor, fontWeight: FontWeight.bold, fontSize: 12)),
-              Text('${profile.mp} / ${profile.maxMp}', style: const TextStyle(color: HunterTheme.mpColor, fontWeight: FontWeight.bold, fontSize: 12)),
+              const Text('MP (MANA)', style: TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.bold, fontSize: 11, fontFamily: 'monospace')),
+              Text('${profile.mp} / ${profile.maxMp}', style: const TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.bold, fontSize: 11, fontFamily: 'monospace')),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(2),
             child: LinearProgressIndicator(
               value: (profile.mp / profile.maxMp).clamp(0.0, 1.0),
-              backgroundColor: const Color(0xFF101928),
-              color: HunterTheme.mpColor,
-              minHeight: 8,
+              backgroundColor: const Color(0xFF081424),
+              color: const Color(0xFF38BDF8),
+              minHeight: 6,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // XP Bar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('LEVEL ${xpInfo.currentLevel} XP', style: const TextStyle(color: HunterTheme.cyanLight, fontWeight: FontWeight.bold, fontSize: 12)),
-              Text('${xpInfo.currentProgressXp} / ${xpInfo.xpNeededForNext} XP (${xpInfo.percentage}%)', style: const TextStyle(color: HunterTheme.cyanLight, fontWeight: FontWeight.bold, fontSize: 12)),
+              Text('LEVEL ${xpInfo.currentLevel} XP', style: const TextStyle(color: Color(0xFF00E5FF), fontWeight: FontWeight.bold, fontSize: 11, fontFamily: 'monospace')),
+              Text('${xpInfo.currentProgressXp} / ${xpInfo.xpNeededForNext} XP (${xpInfo.percentage}%)', style: const TextStyle(color: Color(0xFF00E5FF), fontWeight: FontWeight.bold, fontSize: 11, fontFamily: 'monospace')),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(2),
             child: LinearProgressIndicator(
               value: (xpInfo.percentage / 100).clamp(0.0, 1.0),
-              backgroundColor: const Color(0xFF121b2d),
-              color: HunterTheme.cyan,
-              minHeight: 8,
+              backgroundColor: const Color(0xFF061520),
+              color: const Color(0xFF00E5FF),
+              minHeight: 6,
             ),
           ),
         ],
@@ -276,42 +319,42 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
   Widget _buildStreakBanner(HunterProfile profile) {
     final bonus = getStreakBonus(profile.streak);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF14192b),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF222c48)),
+        color: const Color(0xFF070B14),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 22)),
-          const SizedBox(width: 10),
+          const Icon(Icons.bolt, color: Color(0xFFF59E0B), size: 20),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${profile.streak} DAY STREAK',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1),
+                  '${profile.streak} DAY STREAK [ SYSTEM MULTIPLIER ]',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11, fontFamily: 'monospace', letterSpacing: 0.5),
                 ),
                 Text(
-                  bonus > 0 ? 'Active System Multiplier: +$bonus% Bonus XP' : 'Complete daily quests to activate streak multipliers',
-                  style: const TextStyle(color: HunterTheme.slate400, fontSize: 11),
+                  bonus > 0 ? 'Active System Boost: +$bonus% Bonus XP on completion' : 'Complete daily quests to activate streak multiplier',
+                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 10),
                 ),
               ],
             ),
           ),
           if (bonus > 0)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: HunterTheme.amber.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: HunterTheme.amber),
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(2),
+                border: Border.all(color: const Color(0xFFF59E0B)),
               ),
               child: Text(
                 '+$bonus%',
-                style: const TextStyle(color: HunterTheme.amber, fontWeight: FontWeight.bold, fontSize: 12),
+                style: const TextStyle(color: Color(0xFFF59E0B), fontWeight: FontWeight.w900, fontSize: 10, fontFamily: 'monospace'),
               ),
             ),
         ],
@@ -815,12 +858,12 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
 
   // ================= BOTTOM BAR =================
 
-    Widget _buildBottomActionBar(BuildContext context) {
+  Widget _buildBottomActionBar(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: const BoxDecoration(
-        color: Color(0xFF0a0e1c),
-        border: Border(top: BorderSide(color: Color(0xFF1b233a))),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF070B14),
+        border: Border(top: BorderSide(color: const Color(0xFF00E5FF).withValues(alpha: 0.25))),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -828,7 +871,7 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
           _buildBottomActionItem(
             icon: Icons.menu_book,
             label: 'CODEX',
-            color: HunterTheme.cyan,
+            color: const Color(0xFF00E5FF),
             onTap: () {
               showDialog(context: context, builder: (_) => const QuestCodexDialog());
             },
@@ -836,23 +879,23 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
           _buildBottomActionItem(
             icon: Icons.shield,
             label: 'GUILDS',
-            color: Colors.purpleAccent,
+            color: const Color(0xFFC084FC),
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GuildsScreen()));
             },
           ),
           _buildBottomActionItem(
             icon: Icons.group,
-            label: 'FRIENDS',
-            color: const Color(0xFF38bdf8),
+            label: 'SQUAD',
+            color: const Color(0xFF38BDF8),
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FriendsScreen()));
             },
           ),
           _buildBottomActionItem(
             icon: Icons.add_box,
-            label: 'NEW',
-            color: HunterTheme.purple,
+            label: '+ QUEST',
+            color: const Color(0xFF00E5FF),
             onTap: () {
               showDialog(context: context, builder: (_) => const AddQuestDialog());
             },
@@ -860,15 +903,15 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
           _buildBottomActionItem(
             icon: Icons.person,
             label: 'STATUS',
-            color: HunterTheme.amber,
+            color: const Color(0xFFF59E0B),
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
             },
           ),
           _buildBottomActionItem(
             icon: Icons.leaderboard,
-            label: 'RANK',
-            color: HunterTheme.pink,
+            label: 'RANKS',
+            color: const Color(0xFFF43F5E),
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
             },
@@ -886,16 +929,25 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1),
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                fontFamily: 'monospace',
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

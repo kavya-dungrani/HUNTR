@@ -116,10 +116,10 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF070b18),
+      backgroundColor: const Color(0xFF070B14),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: Color(0xFF1e293b)),
+        borderRadius: BorderRadius.circular(4),
+        side: BorderSide(color: const Color(0xFF00E5FF).withValues(alpha: 0.4), width: 1.5),
       ),
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -171,12 +171,12 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
                 hintStyle: const TextStyle(color: HunterTheme.slate500, fontSize: 12),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF1f293d)),
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: HunterTheme.cyan),
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: const BorderSide(color: Color(0xFF00E5FF)),
                 ),
               ),
             ),

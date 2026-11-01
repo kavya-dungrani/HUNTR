@@ -216,9 +216,14 @@ class FirebaseService {
     final user = currentUser;
     if (user != null) {
       try {
-        final doc = await firestore.collection('hunters').doc(user.uid).get();
+        var doc = await firestore.collection('hunters').doc(user.uid).get();
+        if (!doc.exists || doc.data() == null) {
+          doc = await firestore.collection('players').doc(user.uid).get();
+        }
         if (doc.exists && doc.data() != null) {
-          final profile = HunterProfile.fromJson(doc.data()!);
+          final data = doc.data()!;
+          data['id'] = data['id'] ?? user.uid;
+          final profile = HunterProfile.fromJson(data);
           // Migration guarantee: ensure username and hunterId are claimed
           if (profile.username.isNotEmpty) {
             SocialService.instance.claimUsername(user.uid, profile.username).catchError((_) => profile.username);
@@ -318,16 +323,43 @@ class FirebaseService {
 
   Future<List<Map<String, dynamic>>> fetchLeaderboard() async {
     try {
-      final snap = await firestore
-          .collection('leaderboard')
-          .orderBy('totalXp', descending: true)
-          .limit(25)
-          .get();
-
+      final snap = await firestore.collection('leaderboard').limit(100).get();
       if (snap.docs.isNotEmpty) {
-        return snap.docs.map((d) => d.data()).toList();
+        final list = snap.docs.map((d) {
+          final data = d.data();
+          data['id'] = data['id'] ?? d.id;
+          return data;
+        }).toList();
+
+        list.sort((a, b) {
+          final aXp = (a['totalXp'] is num) ? (a['totalXp'] as num) : num.tryParse(a['totalXp']?.toString() ?? '0') ?? 0;
+          final bXp = (b['totalXp'] is num) ? (b['totalXp'] as num) : num.tryParse(b['totalXp']?.toString() ?? '0') ?? 0;
+          return bXp.compareTo(aXp);
+        });
+
+        return list;
       }
-    } catch (_) {}
+
+      // Fallback to players collection if leaderboard empty
+      final playerSnap = await firestore.collection('players').limit(100).get();
+      if (playerSnap.docs.isNotEmpty) {
+        final list = playerSnap.docs.map((d) {
+          final data = d.data();
+          data['id'] = data['id'] ?? d.id;
+          return data;
+        }).toList();
+
+        list.sort((a, b) {
+          final aXp = (a['totalXp'] is num) ? (a['totalXp'] as num) : num.tryParse(a['totalXp']?.toString() ?? '0') ?? 0;
+          final bXp = (b['totalXp'] is num) ? (b['totalXp'] as num) : num.tryParse(b['totalXp']?.toString() ?? '0') ?? 0;
+          return bXp.compareTo(aXp);
+        });
+
+        return list;
+      }
+    } catch (e) {
+      debugPrint('[FirebaseService] Leaderboard fetch error: $e');
+    }
 
     // Built-in Top Hunters default demo data (Solo Leveling Guilds)
     return [
@@ -392,6 +424,25 @@ class FirebaseService {
         'streak': 92,
       },
     ];
+  }
+
+  Stream<List<Map<String, dynamic>>> streamLeaderboard() {
+    return firestore.collection('leaderboard').limit(100).snapshots().map((snap) {
+      if (snap.docs.isEmpty) return <Map<String, dynamic>>[];
+      final list = snap.docs.map((d) {
+        final data = d.data();
+        data['id'] = data['id'] ?? d.id;
+        return data;
+      }).toList();
+
+      list.sort((a, b) {
+        final aXp = (a['totalXp'] is num) ? (a['totalXp'] as num) : num.tryParse(a['totalXp']?.toString() ?? '0') ?? 0;
+        final bXp = (b['totalXp'] is num) ? (b['totalXp'] as num) : num.tryParse(b['totalXp']?.toString() ?? '0') ?? 0;
+        return bXp.compareTo(aXp);
+      });
+
+      return list;
+    });
   }
 
   Future<void> clearAll() async {

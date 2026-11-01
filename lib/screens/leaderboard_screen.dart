@@ -1,10 +1,9 @@
-import '../widgets/player_profile_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/game_engine.dart';
 import '../providers/hunter_provider.dart';
 import '../services/firebase_service.dart';
-import '../theme/hunter_theme.dart';
+import '../widgets/player_profile_dialog.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -14,78 +13,81 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  List<Map<String, dynamic>> _hunters = [];
-  bool _loading = true;
   String _selectedRankFilter = 'ALL';
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchLeaderboard();
-  }
-
-  Future<void> _fetchLeaderboard() async {
-    final list = await FirebaseService.instance.fetchLeaderboard();
-    if (mounted) {
-      setState(() {
-        _hunters = list;
-        _loading = false;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final userProfile = Provider.of<HunterProvider>(context).profile;
 
-    var displayed = _hunters.where((h) {
-      if (_selectedRankFilter == 'ALL') return true;
-      return (h['rank'] ?? '').toString().contains(_selectedRankFilter);
-    }).toList();
-
     return Scaffold(
-      backgroundColor: const Color(0xFF070a14),
+      backgroundColor: const Color(0xFF030509),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0b0f1d),
+        backgroundColor: const Color(0xFF070B14),
         elevation: 0,
-        title: const Text(
-          'GLOBAL HUNTER GUILD',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 2,
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF00E5FF), size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '[ SYSTEM // GLOBAL HUNTER REGISTRY ]',
+              style: TextStyle(
+                color: const Color(0xFF00E5FF).withValues(alpha: 0.8),
+                fontSize: 10,
+                fontFamily: 'monospace',
+                letterSpacing: 1.5,
+              ),
+            ),
+            const Text(
+              'HUNTER LEADERBOARD',
+              style: TextStyle(
+                color: Color(0xFFF0F6FC),
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ],
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFF00E5FF).withValues(alpha: 0.2), height: 1),
         ),
       ),
       body: Column(
         children: [
-          // Filter Tabs
+          // 1. Rank Filter Tabs: ALL, S, A, B, C, D, E
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: const Color(0xFF070B14),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: ['ALL', 'S-Rank', 'A-Rank', 'B-Rank', 'C-Rank'].map((rf) {
+                children: ['ALL', 'S', 'A', 'B', 'C', 'D', 'E'].map((rf) {
                   final isSel = _selectedRankFilter == rf;
                   return GestureDetector(
                     onTap: () => setState(() => _selectedRankFilter = rf),
                     child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                       decoration: BoxDecoration(
-                        color: isSel ? HunterTheme.cyan : const Color(0xFF131828),
-                        borderRadius: BorderRadius.circular(10),
+                        color: isSel ? const Color(0xFF00E5FF).withValues(alpha: 0.15) : const Color(0xFF0A0F1D),
                         border: Border.all(
-                          color: isSel ? HunterTheme.cyan : const Color(0xFF222c42),
+                          color: isSel ? const Color(0xFF00E5FF) : Colors.white.withValues(alpha: 0.08),
+                          width: 1,
                         ),
+                        borderRadius: BorderRadius.circular(3),
                       ),
                       child: Text(
-                        rf,
+                        rf == 'ALL' ? '[ ALL RANKS ]' : '[ $rf-RANK ]',
                         style: TextStyle(
-                          color: isSel ? Colors.black : Colors.white,
+                          color: isSel ? const Color(0xFF00E5FF) : const Color(0xFF64748B),
+                          fontFamily: 'monospace',
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                          fontSize: 10,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ),
@@ -95,27 +97,35 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             ),
           ),
 
-          // User standing bar
+          // 2. User Standing HUD (Pinned)
           if (userProfile != null)
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF162544), Color(0xFF131c36)]),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: HunterTheme.cyan.withValues(alpha: 0.6)),
+                color: const Color(0xFF070B14),
+                border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.35), width: 1),
+                borderRadius: BorderRadius.circular(4),
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: HunterTheme.cyan,
-                      shape: BoxShape.circle,
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: const Color(0xFF00E5FF)),
                     ),
-                    child: const Center(
-                      child: Icon(Icons.person, color: Colors.black, size: 18),
+                    alignment: Alignment.center,
+                    child: Text(
+                      userProfile.currentRank.split('-')[0],
+                      style: const TextStyle(
+                        color: Color(0xFF00E5FF),
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        fontFamily: 'monospace',
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -123,129 +133,290 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '${userProfile.displayName} (YOU)',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        Row(
+                          children: [
+                            Text(
+                              userProfile.displayName,
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF00E5FF).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                              child: const Text(
+                                'YOU',
+                                style: TextStyle(
+                                  color: Color(0xFF00E5FF),
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w900,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         Text(
-                          'Level ${userProfile.currentLevel} • ${userProfile.currentRank}',
-                          style: const TextStyle(color: HunterTheme.cyanLight, fontSize: 12),
+                          'Level ${userProfile.currentLevel} • ${userProfile.currentRank} • ${userProfile.hunterId}',
+                          style: const TextStyle(color: Color(0xFF64748B), fontSize: 10, fontFamily: 'monospace'),
                         ),
                       ],
                     ),
                   ),
-                  Text(
-                    '${userProfile.totalXp} XP',
-                    style: const TextStyle(color: HunterTheme.amber, fontWeight: FontWeight.bold, fontSize: 14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${userProfile.totalXp} XP',
+                        style: const TextStyle(
+                          color: Color(0xFFF59E0B),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                      const Text(
+                        'REGISTERED',
+                        style: TextStyle(color: Color(0xFF10B981), fontSize: 8.5, fontFamily: 'monospace', fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
 
-          // Leaderboard list
+          // 3. Real-Time Leaderboard Stream
           Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator(color: HunterTheme.cyan))
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: displayed.length,
-                    itemBuilder: (context, idx) {
-                      final h = displayed[idx];
-                      final rank = (h['rank'] ?? 'E-Rank').toString();
-                      final badgeInfo = getRankBadgeInfo(rank);
-                      final isTop3 = idx < 3;
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: FirebaseService.instance.streamLeaderboard(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF00E5FF)),
+                  );
+                }
 
-                      final targetUid = (h['id'] ?? h['uid'] ?? '').toString();
-                      return GestureDetector(
-                        onTap: () {
-                          if (targetUid.isNotEmpty) {
-                            showDialog(
-                              context: context,
-                              builder: (_) => PlayerProfileDialog(
-                                playerUid: targetUid,
-                                initialPlayer: h,
-                              ),
-                            );
-                          }
-                        },
-                        child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0e1322),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isTop3 ? Color(badgeInfo.color).withValues(alpha: 0.4) : const Color(0xFF1c2438),
+                var list = snapshot.data ?? [];
+
+                // Filter by selected rank tab
+                if (_selectedRankFilter != 'ALL') {
+                  list = list.where((h) {
+                    final r = (h['rank'] ?? h['currentRank'] ?? '').toString();
+                    return r.startsWith(_selectedRankFilter);
+                  }).toList();
+                }
+
+                if (list.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.shield_outlined, color: Color(0xFF475569), size: 36),
+                        const SizedBox(height: 12),
+                        const Text(
+                          '[ NO HUNTERS REGISTERED IN THIS TIER ]',
+                          style: TextStyle(
+                            color: Color(0xFF64748B),
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                            letterSpacing: 1,
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            // Rank Number
-                            Container(
-                              width: 30,
-                              alignment: Alignment.center,
-                              child: Text(
-                                '#${idx + 1}',
-                                style: TextStyle(
-                                  color: idx == 0
-                                      ? Colors.amber
-                                      : idx == 1
-                                          ? const Color(0xFFcbd5e1)
-                                          : idx == 2
-                                              ? const Color(0xFFb45309)
-                                              : HunterTheme.slate500,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 16,
-                                ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: list.length,
+                  separatorBuilder: (ctx, i) => const SizedBox(height: 8),
+                  itemBuilder: (context, idx) {
+                    final h = list[idx];
+                    final rank = (h['rank'] ?? h['currentRank'] ?? 'E-Rank').toString();
+                    final badgeInfo = getRankBadgeInfo(rank);
+                    final isTop3 = idx < 3;
+                    final targetUid = (h['id'] ?? h['uid'] ?? '').toString();
+
+                    final borderCol = idx == 0
+                        ? const Color(0xFFF59E0B) // Gold
+                        : idx == 1
+                            ? const Color(0xFFCBD5E1) // Silver
+                            : idx == 2
+                                ? const Color(0xFFD97706) // Bronze
+                                : Colors.white.withValues(alpha: 0.08);
+
+                    final totalXp = (h['totalXp'] is num)
+                        ? (h['totalXp'] as num).toInt()
+                        : int.tryParse(h['totalXp']?.toString() ?? '0') ?? 0;
+
+                    final guildTag = h['guildTag']?.toString();
+
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF070B14),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: isTop3 ? borderCol.withValues(alpha: 0.5) : borderCol,
+                          width: isTop3 ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          // Rank Number #01, #02...
+                          Container(
+                            width: 32,
+                            alignment: Alignment.center,
+                            child: Text(
+                              '#${(idx + 1).toString().padLeft(2, '0')}',
+                              style: TextStyle(
+                                color: idx == 0
+                                    ? const Color(0xFFF59E0B)
+                                    : idx == 1
+                                        ? const Color(0xFFCBD5E1)
+                                        : idx == 2
+                                            ? const Color(0xFFD97706)
+                                            : const Color(0xFF64748B),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13,
+                                fontFamily: 'monospace',
                               ),
                             ),
-                            const SizedBox(width: 12),
+                          ),
+                          const SizedBox(width: 8),
 
-                            // Hunter Details
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        h['displayName'] ?? 'Unknown',
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                          // Rank Badge Box
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Color(badgeInfo.color).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Color(badgeInfo.color).withValues(alpha: 0.5)),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              rank.split('-')[0],
+                              style: TextStyle(
+                                color: Color(badgeInfo.color),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 14,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+
+                          // Hunter Details
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        h['displayName'] ?? 'Hunter',
+                                        style: const TextStyle(
+                                          color: Color(0xFFF0F6FC),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(width: 8),
+                                    ),
+                                    if (guildTag != null && guildTag.isNotEmpty) ...[
+                                      const SizedBox(width: 6),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                         decoration: BoxDecoration(
-                                          color: Color(badgeInfo.color).withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(4),
+                                          color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(2),
+                                          border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.4), width: 0.5),
                                         ),
                                         child: Text(
-                                          badgeInfo.label,
-                                          style: TextStyle(color: Color(badgeInfo.color), fontSize: 10, fontWeight: FontWeight.w900),
+                                          '[$guildTag]',
+                                          style: const TextStyle(
+                                            color: Color(0xFF00E5FF),
+                                            fontSize: 8.5,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'monospace',
+                                          ),
                                         ),
                                       ),
                                     ],
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '@${h['username'] ?? 'hunter'} • Lv.${h['level'] ?? 1} • ${h['equippedTitle'] ?? 'The Awakened'}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontSize: 10,
+                                    fontFamily: 'monospace',
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${h['equippedTitle'] ?? 'The Awakened'} • Level ${h['level'] ?? 1}',
-                                    style: const TextStyle(color: HunterTheme.slate400, fontSize: 12),
-                                  ),
-                                ],
-                              ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
+                          ),
 
-                            // Total XP
-                            Text(
-                              '${h['totalXp'] ?? 0} XP',
-                              style: const TextStyle(color: HunterTheme.amber, fontWeight: FontWeight.bold, fontSize: 14),
-                            ),
-                          ],
-                        ),
+                          // XP and Dossier Button
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '$totalXp XP',
+                                style: const TextStyle(
+                                  color: Color(0xFFF59E0B),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              GestureDetector(
+                                onTap: () {
+                                  if (targetUid.isNotEmpty) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => PlayerProfileDialog(
+                                        playerUid: targetUid,
+                                        initialPlayer: h,
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(2),
+                                    border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.4), width: 0.5),
+                                  ),
+                                  child: const Text(
+                                    'DOSSIER',
+                                    style: TextStyle(
+                                      color: Color(0xFF00E5FF),
+                                      fontSize: 9,
+                                      fontFamily: 'monospace',
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      );
-                    },
-                  ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

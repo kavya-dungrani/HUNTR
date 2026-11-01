@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/game_engine.dart';
 
 class GuildService {
@@ -89,18 +90,24 @@ class GuildService {
     String joinTypeFilter = 'all',
   }) async {
     try {
-      Query<Map<String, dynamic>> q = _firestore.collection('guilds').orderBy('memberCount', descending: true).limit(50);
+      final snap = await _firestore.collection('guilds').limit(100).get();
+      var list = snap.docs.map((d) {
+        final data = d.data();
+        data['id'] = data['id'] ?? d.id;
+        return data;
+      }).toList();
 
+      // Sort client-side by memberCount descending
+      list.sort((a, b) {
+        final aCount = (a['memberCount'] is num) ? (a['memberCount'] as num).toInt() : int.tryParse(a['memberCount']?.toString() ?? '0') ?? 0;
+        final bCount = (b['memberCount'] is num) ? (b['memberCount'] as num).toInt() : int.tryParse(b['memberCount']?.toString() ?? '0') ?? 0;
+        return bCount.compareTo(aCount);
+      });
+
+      // Filter by joinType in-memory
       if (joinTypeFilter != 'all') {
-        q = _firestore
-            .collection('guilds')
-            .where('joinType', isEqualTo: joinTypeFilter)
-            .orderBy('memberCount', descending: true)
-            .limit(50);
+        list = list.where((g) => (g['joinType'] ?? 'open') == joinTypeFilter).toList();
       }
-
-      final snap = await q.get();
-      var list = snap.docs.map((d) => d.data()).toList();
 
       final term = queryText.trim().toLowerCase();
       if (term.isNotEmpty) {
@@ -112,9 +119,32 @@ class GuildService {
       }
 
       return list;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[GuildService] searchGuilds error: $e');
       return [];
     }
+  }
+
+  Stream<List<Map<String, dynamic>>> streamGuilds({String joinTypeFilter = 'all'}) {
+    return _firestore.collection('guilds').limit(100).snapshots().map((snap) {
+      var list = snap.docs.map((d) {
+        final data = d.data();
+        data['id'] = data['id'] ?? d.id;
+        return data;
+      }).toList();
+
+      list.sort((a, b) {
+        final aCount = (a['memberCount'] is num) ? (a['memberCount'] as num).toInt() : int.tryParse(a['memberCount']?.toString() ?? '0') ?? 0;
+        final bCount = (b['memberCount'] is num) ? (b['memberCount'] as num).toInt() : int.tryParse(b['memberCount']?.toString() ?? '0') ?? 0;
+        return bCount.compareTo(aCount);
+      });
+
+      if (joinTypeFilter != 'all') {
+        list = list.where((g) => (g['joinType'] ?? 'open') == joinTypeFilter).toList();
+      }
+
+      return list;
+    });
   }
 
   Future<Map<String, dynamic>?> getGuild(String guildId) async {
