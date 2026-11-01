@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/game_engine.dart';
 import '../models/achievements.dart';
@@ -108,15 +109,33 @@ class ProfileScreen extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  profile.displayName,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w900,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        profile.displayName,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      if (profile.username.isNotEmpty)
+                                        Text(
+                                          '@${profile.username}',
+                                          style: const TextStyle(
+                                            color: HunterTheme.cyan,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
-                                const Spacer(),
+                                const SizedBox(width: 8),
                                 // Rank Badge
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -136,15 +155,105 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Text(
                               profile.equippedTitle.isNotEmpty ? profile.equippedTitle : 'The Awakened',
                               style: const TextStyle(color: HunterTheme.amber, fontSize: 13, fontWeight: FontWeight.bold),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              profile.hunterId,
-                              style: const TextStyle(color: HunterTheme.slate400, fontSize: 12, letterSpacing: 1),
+                            const SizedBox(height: 6),
+                            // Hunter ID with copy button
+                            InkWell(
+                              onTap: () {
+                                Clipboard.setData(ClipboardData(text: profile.hunterId));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: const Color(0xFF141c2e),
+                                    content: Row(
+                                      children: [
+                                        const Icon(Icons.check_circle, color: HunterTheme.cyan, size: 18),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Hunter ID copied: ${profile.hunterId}',
+                                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF13192c),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFF222c42)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.badge, color: HunterTheme.cyan, size: 14),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      profile.hunterId,
+                                      style: const TextStyle(
+                                        color: HunterTheme.cyanLight,
+                                        fontSize: 12,
+                                        fontFamily: 'monospace',
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Icon(Icons.copy, color: HunterTheme.slate400, size: 12),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            // Guild Affiliation
+                            Builder(
+                              builder: (context) {
+                                final hasGuild = (profile.guildId != null && profile.guildId!.isNotEmpty);
+                                final guildRole = (profile.guildRole != null && profile.guildRole!.isNotEmpty)
+                                    ? profile.guildRole!.toUpperCase()
+                                    : 'MEMBER';
+                                final guildLabel = hasGuild
+                                    ? '${profile.guildName ?? 'Guild'} [${profile.guildTag ?? ''}] • $guildRole'
+                                    : 'GUILD: FREE AGENT';
+
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: (hasGuild ? HunterTheme.amber : HunterTheme.slate600).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: (hasGuild ? HunterTheme.amber : HunterTheme.slate600).withValues(alpha: 0.4),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.shield_outlined,
+                                        size: 13,
+                                        color: hasGuild ? HunterTheme.amber : HunterTheme.slate400,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        guildLabel,
+                                        style: TextStyle(
+                                          color: hasGuild ? HunterTheme.amber : HunterTheme.slate400,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),

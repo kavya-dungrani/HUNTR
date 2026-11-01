@@ -1,3 +1,5 @@
+import '../services/presence_service.dart';
+import '../services/social_service.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/game_engine.dart';
@@ -63,6 +65,7 @@ class HunterProvider extends ChangeNotifier {
         }
 
         _activeBonus = DailySystem.generateDailyBonusQuest(_profile!.currentRank);
+        PresenceService.instance.start(_profile!.id);
       }
     } catch (e) {
       debugPrint('HunterProvider initialize error: $e');
@@ -76,8 +79,11 @@ class HunterProvider extends ChangeNotifier {
 
   // ================= AWAKENING / LOGIN / AUTH =================
 
-  void _createDefaultProfileAndQuests(String uid, String name, String affinity) {
-    final hunterId = generateHunterId(uid, affinity);
+  void _createDefaultProfileAndQuests(String uid, String name, String affinity, [String? customUsername, String? customHid]) {
+    final hunterId = customHid ?? generateUniqueHunterId();
+    final cleanUsername = (customUsername != null && customUsername.isNotEmpty)
+        ? normalizeUsername(customUsername)
+        : normalizeUsername(name);
 
     final stats = {
       HunterStat.STR: affinity == 'STR' ? 15 : 10,
@@ -90,6 +96,7 @@ class HunterProvider extends ChangeNotifier {
     _profile = HunterProfile(
       id: uid,
       hunterId: hunterId,
+      username: cleanUsername,
       displayName: name,
       totalXp: 50,
       currentLevel: 1,
@@ -163,6 +170,7 @@ class HunterProvider extends ChangeNotifier {
     required String email,
     required String password,
     required String affinity,
+    String? customUsername,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -175,7 +183,10 @@ class HunterProvider extends ChangeNotifier {
       );
 
       final uid = cred.user?.uid ?? 'hunter_${DateTime.now().millisecondsSinceEpoch}';
-      _createDefaultProfileAndQuests(uid, name, affinity);
+      final cleanUsername = await SocialService.instance.claimUsername(uid, customUsername ?? name);
+      final hid = await SocialService.instance.claimHunterId(uid, null, cleanUsername);
+      _createDefaultProfileAndQuests(uid, name, affinity, cleanUsername, hid);
+      PresenceService.instance.start(uid);
       AudioService.instance.playAwakening();
       await _saveState();
     } finally {
@@ -213,6 +224,7 @@ class HunterProvider extends ChangeNotifier {
           _createDefaultProfileAndQuests(uid, name, preferredAffinity);
           await _saveState();
         }
+        if (_profile != null) PresenceService.instance.start(_profile!.id);
         AudioService.instance.playAwakening();
       }
     } finally {
@@ -520,6 +532,18 @@ class HunterProvider extends ChangeNotifier {
       }
     }
     FirebaseService.instance.saveAchievements(_unlockedAchievements);
+  }
+
+
+  void updateGuildInfo(String? guildId, String? guildRole, String? guildName, String? guildTag) {
+    if (_profile != null) {
+      _profile!.guildId = guildId;
+      _profile!.guildRole = guildRole;
+      _profile!.guildName = guildName;
+      _profile!.guildTag = guildTag;
+      _saveState();
+      notifyListeners();
+    }
   }
 
   Future<void> _saveState() async {

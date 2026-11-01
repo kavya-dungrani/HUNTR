@@ -1,4 +1,7 @@
+import '../services/social_service.dart';
+import '../widgets/add_friend_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/game_engine.dart';
 import '../providers/hunter_provider.dart';
@@ -146,11 +149,22 @@ class _HunterAuthScreenState extends State<HunterAuthScreen>
     }
 
     if (_isSignUp) {
-      final name = _nameController.text.trim();
+      final cleanUsername = normalizeUsername(_nameController.text);
       final confirmPassword = _confirmPasswordController.text.trim();
 
-      if (name.isEmpty) {
-        setState(() => _errorMessage = 'Please enter your Hunter Designation Name.');
+      if (cleanUsername.length < 3) {
+        setState(() => _errorMessage = 'Username must be 3-20 lowercase alphanumeric characters.');
+        return;
+      }
+      if (!isValidUsername(cleanUsername)) {
+        setState(() => _errorMessage = 'Username must contain lowercase characters only (no uppercase, no symbols except _).');
+        return;
+      }
+
+      final isAvail = await SocialService.instance.checkUsernameAvailable(cleanUsername);
+      if (!mounted) return;
+      if (!isAvail) {
+        setState(() => _errorMessage = 'Username "@$cleanUsername" is already claimed by another hunter.');
         return;
       }
       if (password != confirmPassword) {
@@ -162,10 +176,11 @@ class _HunterAuthScreenState extends State<HunterAuthScreen>
       try {
         final hunter = Provider.of<HunterProvider>(context, listen: false);
         await hunter.signUpWithEmail(
-          name: name,
+          name: cleanUsername,
           email: email,
           password: password,
           affinity: _selectedAffinity,
+          customUsername: cleanUsername,
         );
       } catch (e) {
         setState(() {
@@ -468,12 +483,13 @@ class _HunterAuthScreenState extends State<HunterAuthScreen>
                           children: [
                             // SIGN UP EXTRA FIELDS
                             if (_isSignUp) ...[
-                              _buildFieldLabel('HUNTER DESIGNATION / NAME'),
+                              _buildFieldLabel('UNIQUE USERNAME (LOWERCASE ONLY)'),
                               const SizedBox(height: 6),
                               _buildTextField(
                                 controller: _nameController,
-                                hintText: 'e.g. Sung Jin-Woo, Shadow Monarch',
-                                icon: Icons.badge_outlined,
+                                hintText: 'e.g. mahesh, hunter_x, kavya123',
+                                icon: Icons.alternate_email,
+                                inputFormatters: [AutoLowercaseFormatter()],
                               ),
                               const SizedBox(height: 16),
 
@@ -811,11 +827,13 @@ class _HunterAuthScreenState extends State<HunterAuthScreen>
     bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
     Widget? suffixIcon,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       style: const TextStyle(
         color: Colors.white,
         fontSize: 14,

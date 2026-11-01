@@ -1,5 +1,25 @@
+
 // Hunter System Core Game Engine — Dart Port
 import 'dart:math';
+
+// ============================================================
+// USERNAME & HUNTER ID UTILITIES
+// ============================================================
+
+String normalizeUsername(String raw) {
+  return raw.toLowerCase().trim().replaceAll(RegExp(r'[^a-z0-9_]'), '');
+}
+
+bool isValidUsername(String username) {
+  return RegExp(r'^[a-z0-9_]{3,20}$').hasMatch(username);
+}
+
+String generateUniqueHunterId() {
+  const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+  final rng = Random();
+  final code = List.generate(8, (_) => chars[rng.nextInt(chars.length)]).join();
+  return 'HUNTR-$code';
+}
 
 // ============================================================
 // DIFFICULTY SYSTEM
@@ -286,16 +306,8 @@ double getStreakBonusMultiplier(int streak) {
 // HUNTER ID GENERATOR
 // ============================================================
 
-String generateHunterId(String userId, String affinity) {
-  final cleanId = userId.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
-  var first6 = cleanId.length >= 6 ? cleanId.substring(0, 6) : cleanId;
-  if (first6.length < 6) {
-    final rng = Random();
-    final fallback = List.generate(8, (_) => '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'[rng.nextInt(36)]).join();
-    first6 = (first6 + fallback).substring(0, 6);
-  }
-  final cleanAffinity = affinity.toUpperCase().trim();
-  return 'HUNTER-$first6-$cleanAffinity';
+String generateHunterId([String? userId, String? affinity]) {
+  return generateUniqueHunterId();
 }
 
 // ============================================================
@@ -411,7 +423,12 @@ class SystemLogEntry {
 class HunterProfile {
   String id;
   String hunterId;
+  String username;
   String displayName;
+  String? guildId;
+  String? guildRole;
+  String? guildName;
+  String? guildTag;
   int totalXp;
   int currentLevel;
   Map<HunterStat, int> stats;
@@ -450,7 +467,12 @@ class HunterProfile {
   HunterProfile({
     required this.id,
     required this.hunterId,
+    String? username,
     required this.displayName,
+    this.guildId,
+    this.guildRole,
+    this.guildName,
+    this.guildTag,
     this.totalXp = 15,
     this.currentLevel = 1,
     Map<HunterStat, int>? stats,
@@ -490,6 +512,7 @@ class HunterProfile {
          'strength': 0, 'intelligence': 0, 'endurance': 0,
          'discipline': 0, 'focus': 0, 'agility': 0,
        },
+       username = (username != null && username.isNotEmpty) ? normalizeUsername(username) : normalizeUsername(displayName),
        systemLog = systemLog ?? [
          SystemLogEntry(
            id: 'log-init',
@@ -502,7 +525,12 @@ class HunterProfile {
   Map<String, dynamic> toJson() => {
     'id': id,
     'hunterId': hunterId,
+    'username': username,
     'displayName': displayName,
+    'guildId': guildId,
+    'guildRole': guildRole,
+    'guildName': guildName,
+    'guildTag': guildTag,
     'totalXp': totalXp,
     'currentLevel': currentLevel,
     'stats': stats.map((k, v) => MapEntry(k.index.toString(), v)),
@@ -532,10 +560,25 @@ class HunterProfile {
       });
     }
 
+    var rawUsername = json['username'] as String?;
+    var rawName = json['displayName'] as String? ?? 'Hunter';
+    if (rawUsername == null || rawUsername.isEmpty) {
+      rawUsername = normalizeUsername(rawName);
+    }
+    var hid = json['hunterId'] as String? ?? '';
+    if (!RegExp(r'^HUNTR-[A-Z0-9]{8}$').hasMatch(hid)) {
+      hid = generateUniqueHunterId();
+    }
+
     return HunterProfile(
       id: json['id'] as String,
-      hunterId: json['hunterId'] as String,
-      displayName: json['displayName'] as String,
+      hunterId: hid,
+      username: rawUsername,
+      displayName: rawName,
+      guildId: json['guildId'] as String?,
+      guildRole: json['guildRole'] as String?,
+      guildName: json['guildName'] as String?,
+      guildTag: json['guildTag'] as String?,
       totalXp: json['totalXp'] as int? ?? 15,
       currentLevel: json['currentLevel'] as int? ?? 1,
       stats: statsMap.isNotEmpty ? statsMap : null,

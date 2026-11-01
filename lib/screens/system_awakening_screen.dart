@@ -1,3 +1,5 @@
+import '../services/social_service.dart';
+import '../widgets/add_friend_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/game_engine.dart';
@@ -72,16 +74,38 @@ class _SystemAwakeningScreenState extends State<SystemAwakeningScreen> with Sing
   }
 
   Future<void> _handleAwakening() async {
-    final name = _nameController.text.trim();
-    if (name.isEmpty) {
+    final cleanUsername = normalizeUsername(_nameController.text);
+    if (cleanUsername.length < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Color(0xFF1f283d),
-          content: Text('Please enter your Hunter Designation Name', style: TextStyle(color: HunterTheme.red)),
+          content: Text('Username must be 3-20 lowercase alphanumeric characters.', style: TextStyle(color: HunterTheme.red)),
         ),
       );
       return;
     }
+    if (!isValidUsername(cleanUsername)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Color(0xFF1f283d),
+          content: Text('Username must contain lowercase characters only.', style: TextStyle(color: HunterTheme.red)),
+        ),
+      );
+      return;
+    }
+
+    final isAvail = await SocialService.instance.checkUsernameAvailable(cleanUsername);
+    if (!mounted) return;
+    if (!isAvail) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF1f283d),
+          content: Text('Username "@$cleanUsername" is already claimed.', style: const TextStyle(color: HunterTheme.red)),
+        ),
+      );
+      return;
+    }
+    final name = cleanUsername;
 
     final hunter = Provider.of<HunterProvider>(context, listen: false);
 
@@ -210,16 +234,17 @@ class _SystemAwakeningScreenState extends State<SystemAwakeningScreen> with Sing
               Container(
                 alignment: Alignment.centerLeft,
                 child: const Text(
-                  'STEP 1: DESIGNATION (HUNTER NAME)',
+                  'STEP 1: UNIQUE USERNAME (STRICTLY LOWERCASE)',
                   style: TextStyle(color: HunterTheme.cyan, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _nameController,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                inputFormatters: [AutoLowercaseFormatter()],
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16, fontFamily: 'monospace'),
                 decoration: InputDecoration(
-                  hintText: 'e.g. Sung Jin-Woo',
+                  hintText: 'e.g. mahesh, hunter_x, kavya123',
                   hintStyle: const TextStyle(color: HunterTheme.slate500, fontSize: 14),
                   filled: true,
                   fillColor: const Color(0xFF101525),

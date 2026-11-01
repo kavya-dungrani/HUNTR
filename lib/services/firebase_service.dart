@@ -1,3 +1,4 @@
+import 'social_service.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -134,20 +135,8 @@ class FirebaseService {
         final profileMap = profile.toJson();
         await firestore.collection('hunters').doc(user.uid).set(profileMap, SetOptions(merge: true));
 
-        // Update public leaderboard entry
-        await firestore.collection('leaderboard').doc(user.uid).set({
-          'id': user.uid,
-          'hunterId': profile.hunterId,
-          'displayName': profile.displayName,
-          'level': profile.currentLevel,
-          'rank': profile.currentRank,
-          'totalXp': profile.totalXp,
-          'affinity': profile.affinity,
-          'equippedTitle': profile.equippedTitle,
-          'questsCompleted': profile.questsCompleted,
-          'streak': profile.streak,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        // Sync public player card and leaderboard entry
+        await SocialService.instance.syncPublicPlayer(profile);
       } catch (e) {
         // Log quietly — local copy is safe
         debugPrint('Firestore profile sync error (offline or permission): $e');
@@ -162,6 +151,13 @@ class FirebaseService {
         final doc = await firestore.collection('hunters').doc(user.uid).get();
         if (doc.exists && doc.data() != null) {
           final profile = HunterProfile.fromJson(doc.data()!);
+          // Migration guarantee: ensure username and hunterId are claimed
+          if (profile.username.isNotEmpty) {
+            SocialService.instance.claimUsername(user.uid, profile.username).catchError((_) => profile.username);
+          }
+          if (profile.hunterId.isNotEmpty) {
+            SocialService.instance.claimHunterId(user.uid, profile.hunterId, profile.username).catchError((_) => profile.hunterId);
+          }
           // Cache locally
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString(_keyLocalProfile, jsonEncode(profile.toJson()));

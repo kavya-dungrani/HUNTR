@@ -1,3 +1,5 @@
+import 'friends_screen.dart';
+import 'guilds_screen.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -389,25 +391,201 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
     );
   }
 
-  // ================= DAILY QUESTS =================
+  // ================= DAILY QUESTS (REFERENCE 1 — SOLO LEVELING QUEST INFO) =================
 
   Widget _buildDailyQuestsSection(BuildContext context, HunterProvider hunter) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Row(
-          children: [
-            Icon(Icons.calendar_today, color: HunterTheme.cyan, size: 18),
-            SizedBox(width: 8),
-            Text(
-              'DAILY PROTOCOLS (MANDATORY)',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1.5),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF060B18),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF00C8E0), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00C8E0).withValues(alpha: 0.25),
+            blurRadius: 25,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header box: [ (!) QUEST INFO ]
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF00C8E0).withValues(alpha: 0.12),
+                border: Border.all(color: const Color(0xFF00C8E0), width: 1.5),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF00C8E0), width: 1.5),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      '!',
+                      style: TextStyle(color: Color(0xFF00C8E0), fontSize: 11, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'QUEST INFO',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2.5,
+                      shadows: [Shadow(color: Color(0xFF00C8E0), blurRadius: 10)],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        ...hunter.dailyQuests.map((quest) => _buildQuestTile(context, hunter, quest)),
-      ],
+          ),
+          const SizedBox(height: 14),
+
+          // Arrival Announcement
+          const Center(
+            child: Text(
+              '[Daily Quest: Strength Training has arrived.]',
+              style: TextStyle(
+                color: Color(0xFF38BDF8),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Centered GOAL with double underline
+          Center(
+            child: Column(
+              children: [
+                const Text(
+                  'GOAL',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 3,
+                    shadows: [Shadow(color: Color(0xFF00C8E0), blurRadius: 10)],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  width: 50,
+                  height: 2,
+                  color: const Color(0xFF00C8E0),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // Objectives Checklist
+          if (hunter.dailyQuests.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(
+                child: Text(
+                  '[ALL DAILY QUESTS CONQUERED]',
+                  style: TextStyle(color: Color(0xFF4ADE80), fontWeight: FontWeight.bold, letterSpacing: 1),
+                ),
+              ),
+            )
+          else
+            ...hunter.dailyQuests.map((quest) {
+              final isDone = quest.completed;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        quest.name,
+                        style: TextStyle(
+                          color: isDone ? const Color(0xFF4ADE80) : const Color(0xFFE2E8F0),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          '[${quest.progress}/${quest.target}]',
+                          style: TextStyle(
+                            color: isDone ? const Color(0xFF4ADE80) : const Color(0xFF00C8E0),
+                            fontFamily: 'monospace',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        GestureDetector(
+                          onTap: () {
+                            if (!isDone) {
+                              hunter.incrementProgress(quest.id, 10);
+                            }
+                          },
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: isDone
+                                  ? const Color(0xFF4ADE80).withValues(alpha: 0.2)
+                                  : const Color(0xFF00C8E0).withValues(alpha: 0.08),
+                              border: Border.all(
+                                color: isDone ? const Color(0xFF4ADE80) : const Color(0xFF00C8E0),
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            alignment: Alignment.center,
+                            child: isDone
+                                ? const Icon(Icons.check, size: 14, color: Color(0xFF4ADE80))
+                                : const Text('+', style: TextStyle(color: Color(0xFF00C8E0), fontSize: 13, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+          const SizedBox(height: 18),
+
+          // Bottom Warning Banner
+          Container(
+            padding: const EdgeInsets.only(top: 14),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: Color(0xFF00C8E0), width: 0.8)),
+            ),
+            child: const Text(
+              'WARNING: Failure to complete the daily quest will result in an appropriate penalty.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF38BDF8),
+                fontSize: 10.5,
+                height: 1.4,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -637,9 +815,9 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
 
   // ================= BOTTOM BAR =================
 
-  Widget _buildBottomActionBar(BuildContext context) {
+    Widget _buildBottomActionBar(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: const BoxDecoration(
         color: Color(0xFF0a0e1c),
         border: Border(top: BorderSide(color: Color(0xFF1b233a))),
@@ -656,8 +834,24 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
             },
           ),
           _buildBottomActionItem(
+            icon: Icons.shield,
+            label: 'GUILDS',
+            color: Colors.purpleAccent,
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GuildsScreen()));
+            },
+          ),
+          _buildBottomActionItem(
+            icon: Icons.group,
+            label: 'FRIENDS',
+            color: const Color(0xFF38bdf8),
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FriendsScreen()));
+            },
+          ),
+          _buildBottomActionItem(
             icon: Icons.add_box,
-            label: 'NEW QUEST',
+            label: 'NEW',
             color: HunterTheme.purple,
             onTap: () {
               showDialog(context: context, builder: (_) => const AddQuestDialog());
@@ -673,7 +867,7 @@ class _HunterHubScreenState extends State<HunterHubScreen> {
           ),
           _buildBottomActionItem(
             icon: Icons.leaderboard,
-            label: 'GUILD',
+            label: 'RANK',
             color: HunterTheme.pink,
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LeaderboardScreen()));

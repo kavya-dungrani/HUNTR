@@ -1,3 +1,4 @@
+import '../widgets/player_profile_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/game_engine.dart';
@@ -154,7 +155,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                       final badgeInfo = getRankBadgeInfo(rank);
                       final isTop3 = idx < 3;
 
-                      return Container(
+                      final targetUid = (h['id'] ?? h['uid'] ?? '').toString();
+                      return GestureDetector(
+                        onTap: () {
+                          if (targetUid.isNotEmpty) {
+                            showDialog(
+                              context: context,
+                              builder: (_) => PlayerProfileDialog(
+                                playerUid: targetUid,
+                                initialPlayer: h,
+                              ),
+                            );
+                          }
+                        },
+                        child: Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -228,6 +242,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                             ),
                           ],
                         ),
+                      ),
                       );
                     },
                   ),
